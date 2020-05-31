@@ -1,10 +1,12 @@
 import random
 import time
+
 from Field import Field
 from Particle import Particle
 from Position import Direction, Position
 from Randomizer import Randomizer
 from SimulatorView import SimulatorView
+from State import State
 
 
 class Simulator():
@@ -24,8 +26,21 @@ class Simulator():
         self._field = Field(size)
         self.step = 0
         self._view = SimulatorView(root, size)
-        self._colours = ('red', 'green', 'blue', 'yellow', 'magenta', 'cyan')
+        self._colours = {State.SUSCEPTIBLE: 'slate blue',
+                         State.INFECTED: 'red',
+                         State.RECOVERED: 'spring green',
+                         State.DEAD: 'black'}
         self.reset(num_particle)
+
+    def Collision(self, num_particle):
+        for p in range(num_particle - 1):
+            for q in range(p, num_particle):
+                if abs(self._particles[p].position.row - self._particles[q].position.row) + abs(
+                        self._particles[p].position.col - self._particles[q].position.col) == 2:
+                    if self._particles[p].colour == 'red' and self._particles[q].colour == 'slate blue':
+                        self._particles[q].colour = 'red'
+                    if self._particles[q].colour == 'red' and self._particles[p].colour == 'slate blue':
+                        self._particles[p].colour = 'red'
 
     def runLongSimulation(self) -> None:
         """Run the simulation from its current state for a reasonably
@@ -52,8 +67,14 @@ class Simulator():
         self.step += 1
         #  all _particles in motion
         for particle in self._particles:
-            particle.move()
+            if particle.colour != 'black':
+                if particle.colour == 'red' or 'slate blue':
+                    particle.move()
+                    particle.cure()
+                if particle.colour == 'spring green':
+                    particle.move()
         self._view.showStatus(self.step, self._particles)
+        self.Collision(50)
 
     def reset(self, num_particle):
         """Reset the simulation to a starting position.
@@ -67,10 +88,12 @@ class Simulator():
         """Populates the _field with randomly-positioned _particles.
         """
         self._field.clear()
-        for p in range(num_particle):
+        particle_new = Particle(Position(max=self.size), Direction(), self._colours.get(State.INFECTED), self._field)
+        self._particles.append(particle_new)
+        for p in range(num_particle - 1):
             position = Position(max=self.size)  # generate 0 <= random Position < size
             direction = Direction()
-            color = self._colours[random.randint(0, self._colours.__len__() - 1)]
+            color = self._colours.get(State.SUSCEPTIBLE)
             particle_new = Particle(position, direction, color, self._field)
             self._particles.append(particle_new)
             # generate random -1 <= random Direction < 1

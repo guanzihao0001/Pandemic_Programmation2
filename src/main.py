@@ -5,6 +5,7 @@ from Simulator import Simulator
 
 
 def main():
+    import this
     root = tkinter.Tk()
     root.title('Brownian Motion Simulation')
     simulator = Simulator(root, 50)

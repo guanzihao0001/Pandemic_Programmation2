@@ -1,3 +1,5 @@
+import random
+
 import Field
 from Position import Direction, Position
 
@@ -21,6 +23,7 @@ class Particle:
         self.direction = direction
         self.colour = colour
         self.field = field
+        self.cure_sign = 0
 
     def move(self) -> None:
         """Particle moves to a new position.
@@ -39,3 +42,15 @@ class Particle:
 
     def __str__(self):
         return f'Paricle({self.position})'
+
+    def cure(self):
+        if self.colour == 'red':
+            self.cure_sign += 1
+        if self.cure_sign == 21:
+            k = random.random()
+            if k >= 0.5:
+                self.colour = 'black'
+                self.cure_sign = 100
+            else:
+                self.colour = 'spring green'
+                self.cure_sign = 100
